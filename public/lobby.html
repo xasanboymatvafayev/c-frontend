@@ -458,7 +458,14 @@ async function submitDeposit() {
     
     if (resp.ok) {
       closeModal('depositModal');
-      showToast(`To'lov yaratildi! Admin tasdiqlashini kuting`, 'success');
+      // payurl bilan to'lov sahifasiga o'tish
+      const qs = new URLSearchParams({
+        order:   data.order_id,
+        amount:  data.amount,
+        card:    data.card || '',
+        pay_url: data.pay_url || ''
+      });
+      window.location.href = `/game/payment?${qs}`;
     } else {
       showToast(data.detail || 'Xatolik', 'error');
     }
