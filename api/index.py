@@ -3,8 +3,15 @@ Vercel Serverless Function - HTML sahifalarni xizmat qilish
 """
 import os
 from http.server import BaseHTTPRequestHandler
+from dotenv import load_dotenv
 
-BACKEND_URL = os.environ.get("BACKEND_URL", "https://your-backend.railway.app")
+# .env faylni yuklash
+load_dotenv()
+
+BACKEND_URL = os.environ.get(
+    "BACKEND_URL",
+    "https://your-backend.railway.app"
+)
 
 PAGES = {
     "/": "index",
