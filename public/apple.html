@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Apple of Fortune</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #070a14; color: #fff; min-height: 100vh; display: flex; flex-direction: column; }
+
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.5);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  flex-shrink: 0;
+}
+.back-btn { color: #aaa; font-size: 20px; text-decoration: none; }
+.game-title { font-size: 16px; font-weight: 700; color: #4cd964; letter-spacing: 1px; }
+.balance-display { font-size: 13px; color: #FFD700; font-weight: 600; }
+
+.content { flex: 1; padding: 16px; overflow-y: auto; }
+
+/* MULTIPLIER */
+.mult-display {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.mult-label { font-size: 12px; color: #888; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.mult-value {
+  font-size: 52px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #4cd964, #FFD700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: all 0.3s;
+}
+
+/* APPLE GRID */
+.apple-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.apple-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.row-mult {
+  font-size: 11px;
+  color: #666;
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.apple-btn {
+  width: 52px;
+  height: 52px;
+  border: 2px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.04);
+  cursor: pointer;
+  font-size: 28px;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.apple-btn:hover:not(.revealed):not(.inactive) {
+  border-color: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  transform: scale(1.05);
+}
+
+.apple-btn.active-row { border-color: rgba(76, 217, 100, 0.3); cursor: pointer; }
+.apple-btn.inactive { cursor: default; opacity: 0.4; }
+.apple-btn.current-row { border-color: rgba(76, 217, 100, 0.5); background: rgba(76, 217, 100, 0.05); }
+
+.apple-btn.green {
+  background: rgba(76, 217, 100, 0.15);
+  border-color: rgba(76, 217, 100, 0.5);
+  animation: winPop 0.3s ease;
+}
+.apple-btn.red {
+  background: rgba(255, 71, 71, 0.15);
+  border-color: rgba(255, 71, 71, 0.5);
+  animation: shake 0.4s ease;
+}
+
+@keyframes winPop { 0% { transform: scale(0.8); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+.row-arrow {
+  font-size: 16px;
+  color: #4cd964;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.row-arrow.visible { opacity: 1; }
+
+/* CONTROLS */
+.controls {
+  flex-shrink: 0;
+  background: #0e0e1e;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding: 16px;
+}
+
+.bet-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.bet-input {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+  font-family: inherit;
+}
+
+.bet-quick { display: flex; gap: 6px; }
+.quick-btn {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-row { display: flex; gap: 10px; }
+
+.main-btn {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.btn-start { background: linear-gradient(135deg, #4cd964, #1b8c30); color: #fff; }
+.btn-cashout { background: linear-gradient(135deg, #FFD700, #FF8C00); color: #000; }
+.btn-disabled { background: rgba(255,255,255,0.05); color: #666; cursor: not-allowed; }
+
+.result-msg {
+  text-align: center;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: none;
+}
+.result-win { background: rgba(76,217,100,0.15); color: #4cd964; border: 1px solid rgba(76,217,100,0.3); }
+.result-lose { background: rgba(255,71,71,0.15); color: #ff7070; border: 1px solid rgba(255,71,71,0.3); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a class="back-btn" href="/game">←</a>
+  <div class="game-title">🍎 APPLE FORTUNE</div>
+  <div class="balance-display">💰 <span id="bal">0</span></div>
+</div>
+
+<div class="content">
+  <div class="mult-display">
+    <div class="mult-label">Koeffitsient</div>
+    <div class="mult-value" id="multValue">1.00×</div>
+  </div>
+  
+  <div class="apple-rows" id="appleRows"></div>
+  
+  <div class="result-msg" id="resultMsg"></div>
+</div>
+
+<div class="controls">
+  <div class="bet-row">
+    <input class="bet-input" type="number" id="betAmount" value="1000" min="100" placeholder="Tikuv so'm">
+    <div class="bet-quick">
+      <button class="quick-btn" onclick="document.getElementById('betAmount').value = Math.round(parseFloat(document.getElementById('betAmount').value||1000)*0.5)">½</button>
+      <button class="quick-btn" onclick="document.getElementById('betAmount').value = Math.round(parseFloat(document.getElementById('betAmount').value||1000)*2)">2×</button>
+    </div>
+  </div>
+  
+  <div class="btn-row">
+    <button class="main-btn btn-start" id="startBtn" onclick="startGame()">BOSHLASH</button>
+    <button class="main-btn btn-disabled" id="cashoutBtn" onclick="doCashout()" disabled>CASHOUT</button>
+  </div>
+</div>
+
+<script>
+const API = 'https://c-backend-production.up.railway.app/api';
+
+const TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = '/';
+
+const MULTIPLIERS = [1.5, 2.0, 3.0, 5.0, 10.0, 20.0, 50.0];
+
+let sessionId = null;
+let currentRow = 0;
+let gameActive = false;
+let betAmount = 0;
+
+function buildGrid() {
+  const container = document.getElementById('appleRows');
+  container.innerHTML = '';
+  
+  // Show rows from top (high mult) to bottom (start)
+  for (let row = 6; row >= 0; row--) {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'apple-row';
+    rowDiv.id = `row-${row}`;
+    
+    // Row multiplier label
+    const multLabel = document.createElement('span');
+    multLabel.className = 'row-mult';
+    multLabel.textContent = MULTIPLIERS[row] + '×';
+    rowDiv.appendChild(multLabel);
+    
+    // 5 apple buttons
+    for (let pos = 0; pos < 5; pos++) {
+      const btn = document.createElement('button');
+      btn.className = 'apple-btn inactive';
+      btn.id = `apple-${row}-${pos}`;
+      btn.innerHTML = '🍀';
+      btn.onclick = () => pickApple(row, pos);
+      rowDiv.appendChild(btn);
+    }
+    
+    // Arrow indicator
+    const arrow = document.createElement('span');
+    arrow.className = 'row-arrow';
+    arrow.id = `arrow-${row}`;
+    arrow.textContent = '◀';
+    rowDiv.appendChild(arrow);
+    
+    container.appendChild(rowDiv);
+  }
+}
+
+function activateRow(rowIndex) {
+  // Remove current from all
+  document.querySelectorAll('.apple-btn').forEach(b => {
+    b.classList.remove('current-row');
+    if (!b.classList.contains('green') && !b.classList.contains('red') && !b.classList.contains('active-row')) {
+      b.classList.add('inactive');
+    }
+  });
+  document.querySelectorAll('.row-arrow').forEach(a => a.classList.remove('visible'));
+  
+  // Activate current row
+  for (let pos = 0; pos < 5; pos++) {
+    const btn = document.getElementById(`apple-${rowIndex}-${pos}`);
+    if (btn) {
+      btn.classList.remove('inactive');
+      btn.classList.add('current-row');
+    }
+  }
+  document.getElementById(`arrow-${rowIndex}`)?.classList.add('visible');
+}
+
+async function startGame() {
+  const amount = parseFloat(document.getElementById('betAmount').value);
+  if (!amount || amount < 100) { alert('Minimum 100 so\'m!'); return; }
+  
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('resultMsg').style.display = 'none';
+  
+  try {
+    const resp = await fetch(`${API}/games/apple/start`, {
+      method: 'POST',
+      headers: {'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json'},
+      body: JSON.stringify({amount})
+    });
+    const data = await resp.json();
+    
+    if (resp.ok) {
+      sessionId = data.session_id;
+      currentRow = 0;
+      gameActive = true;
+      betAmount = amount;
+      
+      buildGrid();
+      activateRow(0);
+      
+      document.getElementById('multValue').textContent = '1.00×';
+      document.getElementById('startBtn').textContent = 'O\'yin davom etmoqda';
+      
+      loadBalance();
+    } else {
+      alert(data.detail || 'Xatolik!');
+      document.getElementById('startBtn').disabled = false;
+    }
+  } catch(e) {
+    alert('Server xatosi');
+    document.getElementById('startBtn').disabled = false;
+  }
+}
+
+async function pickApple(row, pos) {
+  if (!gameActive || row !== currentRow) return;
+  
+  // Disable all buttons in row
+  for (let p = 0; p < 5; p++) {
+    const b = document.getElementById(`apple-${row}-${p}`);
+    if (b) b.onclick = null;
+  }
+  
+  try {
+    const resp = await fetch(`${API}/games/apple/pick`, {
+      method: 'POST',
+      headers: {'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json'},
+      body: JSON.stringify({session_id: sessionId, position: pos, row})
+    });
+    const data = await resp.json();
+    
+    if (data.result === 'lose') {
+      // Reveal bad apple
+      const btn = document.getElementById(`apple-${row}-${pos}`);
+      btn.innerHTML = '🍎';
+      btn.classList.add('red');
+      btn.classList.remove('current-row');
+      
+      // Show other positions
+      for (let p = 0; p < 5; p++) {
+        if (p !== pos && data.bad_position !== undefined) {
+          const b = document.getElementById(`apple-${row}-${p}`);
+          if (b) { b.innerHTML = '🍀'; b.classList.add('inactive'); }
+        }
+      }
+      
+      endGame('lose', 'Yutqazdingiz! 🍎 Qizil olma chiqdi!');
+      
+    } else if (data.result === 'continue') {
+      // Green apple
+      const btn = document.getElementById(`apple-${row}-${pos}`);
+      btn.innerHTML = '🍀';
+      btn.classList.add('green');
+      btn.classList.remove('current-row');
+      
+      currentRow = data.next_row;
+      document.getElementById('multValue').textContent = data.multiplier.toFixed(2) + '×';
+      
+      // Enable cashout
+      const cashBtn = document.getElementById('cashoutBtn');
+      cashBtn.disabled = false;
+      cashBtn.className = 'main-btn btn-cashout';
+      cashBtn.textContent = `CASHOUT (${(betAmount * data.multiplier).toFixed(0)} so'm)`;
+      
+      activateRow(data.next_row);
+      
+    } else if (data.result === 'win') {
+      // Final win
+      endGame('win', `🎉 Tabriklaymiz! ${data.win_amount.toLocaleString()} so'm yutdingiz! (${data.multiplier}×)`);
+      loadBalance();
+    }
+  } catch(e) {
+    alert('Server xatosi');
+  }
+}
+
+async function doCashout() {
+  if (!gameActive || !sessionId) return;
+  
+  try {
+    const resp = await fetch(`${API}/games/apple/cashout?session_id=${sessionId}`, {
+      method: 'POST',
+      headers: {'Authorization': `Bearer ${TOKEN}`}
+    });
+    const data = await resp.json();
+    
+    if (resp.ok) {
+      endGame('win', `💰 Cashout: ${data.win_amount.toLocaleString()} so'm (${data.multiplier}×)`);
+      loadBalance();
+    }
+  } catch(e) {}
+}
+
+function endGame(type, message) {
+  gameActive = false;
+  sessionId = null;
+  
+  const msg = document.getElementById('resultMsg');
+  msg.textContent = message;
+  msg.className = `result-msg result-${type}`;
+  msg.style.display = 'block';
+  
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('startBtn').textContent = 'QAYTA BOSHLASH';
+  
+  const cashBtn = document.getElementById('cashoutBtn');
+  cashBtn.disabled = true;
+  cashBtn.className = 'main-btn btn-disabled';
+  cashBtn.textContent = 'CASHOUT';
+  
+  // Deactivate all rows
+  document.querySelectorAll('.apple-btn').forEach(b => {
+    b.classList.remove('current-row');
+    b.onclick = null;
+  });
+  document.querySelectorAll('.row-arrow').forEach(a => a.classList.remove('visible'));
+}
+
+async function loadBalance() {
+  try {
+    const r = await fetch(`${API}/users/balance`, {headers: {'Authorization': `Bearer ${TOKEN}`}});
+    const d = await r.json();
+    document.getElementById('bal').textContent = Math.floor(d.balance).toLocaleString();
+  } catch(e) {}
+}
+
+// INIT
+buildGrid();
+loadBalance();
+</script>
+</body>
+</html>

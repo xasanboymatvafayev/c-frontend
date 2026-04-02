@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Aviator</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #070714; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* HEADER */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.5);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  flex-shrink: 0;
+}
+
+.back-btn { color: #aaa; font-size: 20px; text-decoration: none; padding: 4px 8px; }
+.game-title { font-size: 16px; font-weight: 700; color: #FF4747; letter-spacing: 1px; }
+.balance-display { font-size: 13px; color: #FFD700; font-weight: 600; }
+
+/* GAME CANVAS AREA */
+.game-area {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #0d0d2b 0%, #070714 100%);
+}
+
+canvas { width: 100%; height: 100%; display: block; }
+
+/* MULTIPLIER DISPLAY */
+.multiplier-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.multiplier-value {
+  font-size: 64px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 40px rgba(255, 71, 71, 0.8);
+  letter-spacing: -2px;
+  transition: color 0.1s;
+}
+
+.multiplier-value.crashed { color: #FF4747; text-shadow: 0 0 40px rgba(255, 71, 71, 1); }
+.multiplier-value.waiting { color: #888; font-size: 24px; }
+
+.phase-label {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  color: #666;
+  letter-spacing: 1px;
+}
+
+/* HISTORY */
+.history-row {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 180px;
+}
+
+.history-chip {
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.chip-low { background: rgba(255,71,71,0.2); color: #ff7070; }
+.chip-mid { background: rgba(255,180,0,0.2); color: #FFD700; }
+.chip-high { background: rgba(100,200,100,0.2); color: #4cd964; }
+
+/* CONTROLS */
+.controls {
+  flex-shrink: 0;
+  background: #0e0e1e;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding: 16px;
+}
+
+.bet-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.bet-label { font-size: 12px; color: #888; width: 50px; flex-shrink: 0; }
+
+.bet-input {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+  font-family: inherit;
+}
+
+.bet-input:focus { border-color: rgba(255,180,0,0.4); }
+
+.bet-quick {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.quick-btn {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.quick-btn:hover { background: rgba(255,255,255,0.14); }
+
+.auto-cashout-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.toggle-label { font-size: 12px; color: #888; display: flex; align-items: center; gap: 6px; }
+
+input[type="checkbox"] {
+  width: 36px; height: 20px;
+  appearance: none;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+input[type="checkbox"]:checked { background: #FF4747; }
+input[type="checkbox"]::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  top: 2px; left: 2px;
+  transition: left 0.2s;
+}
+input[type="checkbox"]:checked::after { left: 18px; }
+
+.main-btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.btn-bet {
+  background: linear-gradient(135deg, #FF4747, #CC2222);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(255,71,71,0.3);
+}
+
+.btn-cashout {
+  background: linear-gradient(135deg, #00C853, #1B5E20);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(0,200,83,0.3);
+  animation: pulse 0.8s ease-in-out infinite;
+}
+
+.btn-wait {
+  background: rgba(255,255,255,0.05);
+  color: #666;
+  cursor: not-allowed;
+}
+
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.my-bet-info {
+  text-align: center;
+  font-size: 13px;
+  color: #888;
+  margin-top: 10px;
+  height: 18px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a class="back-btn" href="/game">←</a>
+  <div class="game-title">✈️ AVIATOR</div>
+  <div class="balance-display">💰 <span id="bal">0</span></div>
+</div>
+
+<div class="game-area">
+  <canvas id="gameCanvas"></canvas>
+  
+  <div class="history-row" id="historyRow"></div>
+  
+  <div class="multiplier-overlay">
+    <div>
+      <div class="phase-label" id="phaseLabel">Kutilmoqda...</div>
+      <div class="multiplier-value" id="multiplierDisplay">1.00×</div>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="bet-row">
+    <span class="bet-label">Tikuv</span>
+    <input class="bet-input" type="number" id="betAmount" value="1000" min="100" step="100">
+    <div class="bet-quick">
+      <button class="quick-btn" onclick="setQuick(0.5)">½</button>
+      <button class="quick-btn" onclick="setQuick(2)">2×</button>
+      <button class="quick-btn" onclick="setQuick(null)">Max</button>
+    </div>
+  </div>
+  
+  <div class="auto-cashout-row">
+    <label class="toggle-label">
+      <input type="checkbox" id="autoToggle" onchange="toggleAuto()">
+      Auto cashout
+    </label>
+    <input class="bet-input" type="number" id="autoCashout" value="2.00" step="0.1" min="1.1" 
+           style="width:90px;flex:none;font-size:13px;padding:8px 10px;" disabled>
+    <span style="font-size:13px;color:#888">×</span>
+  </div>
+  
+  <button class="main-btn btn-bet" id="mainBtn" onclick="handleMainBtn()">
+    TIKISH
+  </button>
+  
+  <div class="my-bet-info" id="betInfo"></div>
+</div>
+
+<script>
+const API = 'https://c-backend-production.up.railway.app/api';
+const TOKEN = localStorage.getItem('token');
+if (!TOKEN) window.location.href = '/';
+
+// STATE
+let phase = 'waiting';
+let multiplier = 1.0;
+let myBet = null;
+let hasBet = false;
+let hasCashedOut = false;
+let ws = null;
+let animFrame = null;
+let planeX = 0, planeY = 0;
+let crashPoint = 1.0;
+let history = [];
+let countdown = 5;
+
+// CANVAS
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const area = canvas.parentElement;
+  canvas.width = area.clientWidth;
+  canvas.height = area.clientHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// WebSocket
+function connectWS() {
+  const userId = localStorage.getItem('user_id');
+  const wsUrl = `${API.replace('http','ws').replace('/api','')}/ws/${userId}`;
+  ws = new WebSocket(wsUrl);
+  
+  ws.onopen = () => {
+    ws.send(JSON.stringify({type: 'get_state'}));
+  };
+  
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    handleWSMessage(msg);
+  };
+  
+  ws.onclose = () => setTimeout(connectWS, 2000);
+  ws.onerror = () => ws.close();
+}
+
+function handleWSMessage(msg) {
+  switch(msg.type) {
+    case 'aviator_waiting':
+    case 'state':
+      if (msg.phase === 'waiting' || msg.type === 'aviator_waiting') {
+        phase = 'waiting';
+        multiplier = 1.0;
+        hasBet = false;
+        hasCashedOut = false;
+        myBet = null;
+        countdown = msg.countdown || 5;
+      } else if (msg.phase === 'flying') {
+        phase = 'flying';
+        multiplier = msg.multiplier || 1.0;
+      } else if (msg.phase === 'crashed') {
+        phase = 'crashed';
+      }
+      if (msg.history) history = msg.history;
+      updateUI();
+      break;
+      
+    case 'aviator_countdown':
+      countdown = msg.countdown;
+      document.getElementById('phaseLabel').textContent = `⏳ ${countdown} soniyada...`;
+      break;
+      
+    case 'aviator_start':
+      phase = 'flying';
+      multiplier = 1.0;
+      planeX = 0;
+      planeY = canvas.height * 0.8;
+      startFlightAnimation();
+      updateUI();
+      break;
+      
+    case 'aviator_tick':
+      multiplier = msg.multiplier;
+      document.getElementById('multiplierDisplay').textContent = multiplier.toFixed(2) + '×';
+      if (myBet) {
+        const potential = (myBet * multiplier).toFixed(0);
+        document.getElementById('betInfo').textContent = `Potensial: ${parseInt(potential).toLocaleString()} so'm`;
+      }
+      break;
+      
+    case 'aviator_crashed':
+      phase = 'crashed';
+      multiplier = msg.crash_point;
+      history.unshift(msg.crash_point);
+      if (history.length > 20) history.pop();
+      onCrashed();
+      updateUI();
+      break;
+      
+    case 'aviator_cashout':
+      if (msg.user_id == localStorage.getItem('user_id')) {
+        hasCashedOut = true;
+        const win = msg.win_amount;
+        document.getElementById('betInfo').textContent = `✅ Yutdingiz: ${win.toLocaleString()} so'm!`;
+        loadBalance();
+      }
+      break;
+      
+    case 'aviator_lose':
+      if (msg.user_id == localStorage.getItem('user_id')) {
+        document.getElementById('betInfo').textContent = `❌ Yutqazdingiz!`;
+      }
+      break;
+      
+    case 'bet_confirmed':
+      hasBet = true;
+      myBet = msg.amount;
+      updateUI();
+      break;
+  }
+}
+
+// ANIMATION
+function startFlightAnimation() {
+  if (animFrame) cancelAnimationFrame(animFrame);
+  
+  function draw() {
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    
+    if (phase !== 'flying' && phase !== 'crashed') return;
+    
+    // Progress plane position based on multiplier
+    const progress = Math.min((multiplier - 1) / 10, 1);
+    planeX = w * 0.1 + progress * w * 0.75;
+    planeY = h * 0.85 - progress * h * 0.7;
+    
+    // Draw trajectory line
+    const grad = ctx.createLinearGradient(0, h * 0.85, planeX, planeY);
+    grad.addColorStop(0, 'rgba(255, 71, 71, 0.05)');
+    grad.addColorStop(1, 'rgba(255, 71, 71, 0.4)');
+    
+    ctx.beginPath();
+    ctx.moveTo(w * 0.08, h * 0.85);
+    
+    // Curved path
+    const cp1x = w * 0.08 + (planeX - w * 0.08) * 0.6;
+    const cp1y = h * 0.85;
+    ctx.quadraticCurveTo(cp1x, cp1y, planeX, planeY);
+    
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+    ctx.stroke();
+    
+    // Draw plane
+    if (phase === 'flying') {
+      ctx.save();
+      const angle = Math.atan2(-(planeY - (planeY + 20)), (planeX - (planeX - 20)));
+      ctx.translate(planeX, planeY);
+      ctx.rotate(angle - 0.3);
+      ctx.font = `${32}px serif`;
+      ctx.fillText('✈️', -16, 12);
+      ctx.restore();
+      
+      // Glow
+      ctx.beginPath();
+      ctx.arc(planeX, planeY, 20, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,71,71,0.1)';
+      ctx.fill();
+    }
+    
+    if (phase === 'flying') animFrame = requestAnimationFrame(draw);
+  }
+  
+  animFrame = requestAnimationFrame(draw);
+}
+
+function onCrashed() {
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  
+  ctx.fillStyle = 'rgba(255, 71, 71, 0.05)';
+  ctx.fillRect(0, 0, w, h);
+  
+  document.getElementById('multiplierDisplay').textContent = multiplier.toFixed(2) + '×';
+  document.getElementById('multiplierDisplay').classList.add('crashed');
+  document.getElementById('phaseLabel').textContent = '💥 CRASHED!';
+  
+  setTimeout(() => {
+    document.getElementById('multiplierDisplay').classList.remove('crashed');
+  }, 3000);
+}
+
+// UI UPDATE
+function updateUI() {
+  const display = document.getElementById('multiplierDisplay');
+  const btn = document.getElementById('mainBtn');
+  const phaseLabel = document.getElementById('phaseLabel');
+  
+  if (phase === 'waiting') {
+    display.textContent = '🕐';
+    display.className = 'multiplier-value waiting';
+    phaseLabel.textContent = `⏳ ${countdown} soniyada boshlanadi`;
+    
+    if (hasBet) {
+      btn.className = 'main-btn btn-wait';
+      btn.textContent = 'TIKUV QABUL QILINDI ✓';
+      document.getElementById('betInfo').textContent = `Tikuv: ${myBet?.toLocaleString()} so'm`;
+    } else {
+      btn.className = 'main-btn btn-bet';
+      btn.textContent = 'TIKISH';
+      document.getElementById('betInfo').textContent = '';
+    }
+    
+  } else if (phase === 'flying') {
+    display.className = 'multiplier-value';
+    phaseLabel.textContent = '🚀 Uchmoqda...';
+    
+    if (hasBet && !hasCashedOut) {
+      btn.className = 'main-btn btn-cashout';
+      btn.textContent = `CASHOUT ${(myBet * multiplier).toFixed(0)} SO'M`;
+    } else if (hasCashedOut) {
+      btn.className = 'main-btn btn-wait';
+      btn.textContent = '✅ CASHOUT QILINDI';
+    } else {
+      btn.className = 'main-btn btn-wait';
+      btn.textContent = '⏳ KUTISH...(tikish mumkin emas)';
+    }
+    
+  } else if (phase === 'crashed') {
+    display.className = 'multiplier-value crashed';
+    phaseLabel.textContent = '💥 Yiqildi!';
+    btn.className = 'main-btn btn-wait';
+    btn.textContent = 'Yangi raundni kuting...';
+    
+    updateHistory();
+  }
+}
+
+function updateHistory() {
+  const row = document.getElementById('historyRow');
+  row.innerHTML = history.slice(0, 8).map(v => {
+    let cls = v < 2 ? 'chip-low' : v < 5 ? 'chip-mid' : 'chip-high';
+    return `<span class="history-chip ${cls}">${v.toFixed(2)}×</span>`;
+  }).join('');
+}
+
+// ACTIONS
+async function handleMainBtn() {
+  if (phase === 'flying' && hasBet && !hasCashedOut) {
+    // CASHOUT
+    ws.send(JSON.stringify({type: 'aviator_cashout'}));
+    return;
+  }
+  
+  if (phase !== 'waiting' || hasBet) return;
+  
+  const amount = parseFloat(document.getElementById('betAmount').value);
+  if (!amount || amount < 100) { alert('Minimum tikuv 100 so\'m!'); return; }
+  
+  const autoToggle = document.getElementById('autoToggle').checked;
+  const autoCashout = autoToggle ? parseFloat(document.getElementById('autoCashout').value) : null;
+  
+  // Deduct from balance first via API
+  try {
+    const resp = await fetch(`${API}/games/aviator/bet`, {
+      method: 'POST',
+      headers: {'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json'},
+      body: JSON.stringify({amount, auto_cashout: autoCashout})
+    });
+    if (resp.ok) {
+      // Also send via WS
+      ws.send(JSON.stringify({type: 'aviator_bet', amount, auto_cashout: autoCashout}));
+      myBet = amount;
+      hasBet = true;
+      loadBalance();
+      updateUI();
+    } else {
+      const data = await resp.json();
+      document.getElementById('betInfo').textContent = data.detail || 'Xatolik!';
+    }
+  } catch(e) {
+    document.getElementById('betInfo').textContent = 'Server xatosi';
+  }
+}
+
+function setQuick(mult) {
+  const input = document.getElementById('betAmount');
+  if (mult === null) {
+    // Max = balance
+    const bal = parseInt(document.getElementById('bal').textContent.replace(/,/g,'')) || 0;
+    input.value = bal;
+  } else {
+    input.value = Math.round(parseFloat(input.value || 1000) * mult);
+  }
+}
+
+function toggleAuto() {
+  document.getElementById('autoCashout').disabled = !document.getElementById('autoToggle').checked;
+}
+
+async function loadBalance() {
+  try {
+    const r = await fetch(`${API}/users/balance`, {headers: {'Authorization': `Bearer ${TOKEN}`}});
+    const d = await r.json();
+    document.getElementById('bal').textContent = Math.floor(d.balance).toLocaleString();
+  } catch(e) {}
+}
+
+// INIT
+loadBalance();
+connectWS();
+
+// Keyboard shortcut
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); handleMainBtn(); }
+});
+</script>
+</body>
+</html>
