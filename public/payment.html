@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>To'lov | Casino</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: linear-gradient(135deg, #e8f4fd 0%, #d4eaf7 50%, #c8e6f5 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 24px 16px;
+  color: #1a1a2e;
+}
+
+.site-header {
+  font-size: 13px;
+  color: #5a6a7a;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.card-wrapper {
+  background: #fff;
+  border-radius: 24px;
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 8px 40px rgba(0,80,160,0.12);
+}
+
+/* Summa bloki */
+.amount-label {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #8899aa;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.amount-value {
+  text-align: center;
+  font-size: 48px;
+  font-weight: 800;
+  color: #22c55e;
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+}
+.amount-currency {
+  font-size: 20px;
+  font-weight: 600;
+  color: #22c55e;
+}
+
+/* Ogohlantirish */
+.warning-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fffbeb;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 16px 0;
+}
+.warning-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.warning-text {
+  font-size: 13px;
+  color: #d97706;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Karta */
+.bank-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+  border-radius: 18px;
+  padding: 24px 22px 20px;
+  margin: 16px 0;
+  position: relative;
+  overflow: hidden;
+  min-height: 160px;
+}
+.bank-card::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 50%;
+}
+.bank-card::after {
+  content: '';
+  position: absolute;
+  bottom: -20px; right: 40px;
+  width: 80px; height: 80px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 50%;
+}
+
+.card-chip {
+  width: 42px; height: 32px;
+  background: linear-gradient(135deg, #d4a843, #f0c86a, #c8932a);
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+.card-number {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 4px;
+  margin-bottom: 18px;
+  font-family: 'Courier New', monospace;
+}
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.card-owner-label { font-size: 9px; color: rgba(255,255,255,0.5); letter-spacing: 1.5px; margin-bottom: 2px; }
+.card-owner-name  { font-size: 13px; color: #fff; font-weight: 600; letter-spacing: 1px; }
+.card-bank-label  { font-size: 9px; color: rgba(255,255,255,0.5); letter-spacing: 1.5px; margin-bottom: 2px; text-align: right; }
+.card-bank-name   { font-size: 13px; color: #fff; font-weight: 700; letter-spacing: 0.5px; text-align: right; }
+
+/* Nusxa tugmasi */
+.copy-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #3b82f6, #22c55e);
+  border: none;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  margin-bottom: 20px;
+  letter-spacing: 0.3px;
+}
+.copy-btn:active { opacity: 0.85; transform: scale(0.98); }
+.copy-btn.copied { background: #22c55e; }
+
+/* Separator */
+.sep { height: 1px; background: #f0f4f8; margin: 4px 0 20px; }
+
+/* Timer */
+.timer-label {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #8899aa;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.timer-value {
+  text-align: center;
+  font-size: 40px;
+  font-weight: 800;
+  color: #1a1a2e;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+}
+.timer-bar-bg {
+  height: 6px;
+  background: #e5eef7;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.timer-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+  border-radius: 3px;
+  transition: width 1s linear;
+  width: 100%;
+}
+.timer-expired-msg {
+  text-align: center;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 4px;
+  display: none;
+}
+
+/* Status */
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  color: #64748b;
+  font-size: 13px;
+}
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid #cbd5e1;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 30px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: #1e293b;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 999;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Muvaffaqiyat */
+.success-overlay {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 0;
+}
+.success-icon { font-size: 64px; margin-bottom: 16px; }
+.success-title { font-size: 24px; font-weight: 800; color: #22c55e; margin-bottom: 8px; }
+.success-sub   { font-size: 15px; color: #64748b; margin-bottom: 24px; }
+.back-btn {
+  padding: 14px 40px;
+  background: linear-gradient(135deg, #3b82f6, #22c55e);
+  border: none;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="site-header">Secure Payments | checkcard.uz</div>
+
+<div class="card-wrapper" id="mainCard">
+  <!-- Summa -->
+  <div class="amount-label">TO'LOV SUMMASI</div>
+  <div class="amount-value"><span id="amountDisplay">—</span> <span class="amount-currency">UZS</span></div>
+
+  <!-- Ogohlantirish -->
+  <div class="warning-box">
+    <div class="warning-icon">⚠️</div>
+    <div class="warning-text">Summani aynan shu miqdorda o'tkazing, aks holda to'lov boshqa birovga o'tishi mumkin!</div>
+  </div>
+
+  <!-- Bank kartasi -->
+  <div class="bank-card">
+    <div class="card-chip"></div>
+    <div class="card-number" id="cardDisplay">•••• •••• •••• ••••</div>
+    <div class="card-footer">
+      <div>
+        <div class="card-owner-label">KARTA EGASI</div>
+        <div class="card-owner-name" id="cardOwner">—</div>
+      </div>
+      <div>
+        <div class="card-bank-label">BANK</div>
+        <div class="card-bank-name" id="cardBank">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nusxa tugmasi -->
+  <button class="copy-btn" id="copyBtn" onclick="copyCard()">
+    Karta raqamni nusxalash
+  </button>
+
+  <div class="sep"></div>
+
+  <!-- Taymer -->
+  <div class="timer-label">QOLGAN VAQT</div>
+  <div class="timer-value" id="timerDisplay">05:00</div>
+  <div class="timer-bar-bg">
+    <div class="timer-bar" id="timerBar"></div>
+  </div>
+  <div class="timer-expired-msg" id="expiredMsg">Vaqt tugach to'lov qabul qilinmaydi!</div>
+
+  <!-- Status -->
+  <div class="status-row">
+    <div class="spinner" id="spinner"></div>
+    <span id="statusText">Tekshirilmoqda...</span>
+  </div>
+</div>
+
+<!-- Muvaffaqiyat ekrani -->
+<div class="card-wrapper" id="successCard" style="display:none;">
+  <div class="success-overlay" style="display:flex;">
+    <div class="success-icon">✅</div>
+    <div class="success-title">To'lov qabul qilindi!</div>
+    <div class="success-sub" id="successMsg">Balansingizga muvaffaqiyatli qo'shildi.</div>
+    <button class="back-btn" onclick="goBack()">Orqaga qaytish</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = localStorage.getItem('api_base') || '__BACKEND_URL__';
+const TOKEN = localStorage.getItem('token');
+
+// URL parametrlardan ma'lumotlarni olish
+// /game/payment?order=xxx&amount=xxx&card=xxx&pay_url=xxx
+const params   = new URLSearchParams(location.search);
+const ORDER_ID = params.get('order');
+const AMOUNT   = parseFloat(params.get('amount')) || 0;
+const CARD_RAW = params.get('card') || '';
+const PAY_URL  = params.get('pay_url') || '';
+
+const TOTAL_SEC = 5 * 60; // 5 daqiqa
+let remaining   = TOTAL_SEC;
+let timerActive = true;
+let checkInterval;
+
+// ── Sahifa yuklanganda ──────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  if (!ORDER_ID || !AMOUNT) {
+    // To'lov ma'lumoti yo'q — lobby ga qayt
+    location.href = '/game';
+    return;
+  }
+
+  // Summani ko'rsatish
+  document.getElementById('amountDisplay').textContent = AMOUNT.toLocaleString();
+
+  // Karta raqamini formatlash
+  const raw = CARD_RAW.replace(/\s/g, '');
+  let formatted = raw;
+  if (raw.length === 16) {
+    formatted = raw.replace(/(.{4})/g, '$1 ').trim();
+  }
+  document.getElementById('cardDisplay').textContent = formatted || '—';
+
+  // Karta egasi va bank (agar payurl bo'lsa o'sha sahifaga redirect)
+  if (PAY_URL) {
+    // CheckCard o'z sahifasini ochadi — shu yerda iframe yoki redirect
+    window.open(PAY_URL, '_blank');
+  }
+
+  // Karta bankini aniqlash (prefiks asosida)
+  detectBank(raw);
+
+  // Taymerni boshlash
+  startTimer();
+
+  // Avtomatik tekshirish (15 soniyada bir)
+  checkInterval = setInterval(checkPayment, 15000);
+  // Darhol ham bir marta tekshirish
+  setTimeout(checkPayment, 3000);
+});
+
+function detectBank(card) {
+  const prefix = card.substring(0, 4);
+  const bankMap = {
+    '8600': ['—', 'UZCARD'],
+    '9860': ['—', 'UZCARD'],
+    '4169': ['—', 'HUMO'],
+    '5614': ['XASANOV J', 'TBC BANK'],
+    '9862': ['—', 'KAPITALBANK'],
+  };
+  const info = bankMap[prefix] || ['—', '—'];
+  document.getElementById('cardOwner').textContent = info[0];
+  document.getElementById('cardBank').textContent  = info[1];
+}
+
+function startTimer() {
+  const bar = document.getElementById('timerBar');
+  const display = document.getElementById('timerDisplay');
+
+  function tick() {
+    if (!timerActive) return;
+    remaining--;
+
+    const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+    const s = (remaining % 60).toString().padStart(2, '0');
+    display.textContent = `${m}:${s}`;
+
+    const pct = (remaining / TOTAL_SEC) * 100;
+    bar.style.width = pct + '%';
+
+    // Rangni o'zgartirish
+    if (remaining < 60) {
+      bar.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+      display.style.color = '#ef4444';
+    } else if (remaining < 120) {
+      bar.style.background = 'linear-gradient(90deg, #f59e0b, #d97706)';
+      display.style.color = '#f59e0b';
+    }
+
+    if (remaining <= 0) {
+      timerActive = false;
+      clearInterval(checkInterval);
+      document.getElementById('expiredMsg').style.display = 'block';
+      document.getElementById('statusText').textContent = 'Vaqt tugadi';
+      document.getElementById('spinner').style.display = 'none';
+      bar.style.width = '0%';
+      // Bekor qilish
+      cancelOrder();
+      return;
+    }
+  }
+  setInterval(tick, 1000);
+}
+
+async function checkPayment() {
+  if (!timerActive) return;
+  try {
+    const r = await fetch(`${API}/payments/deposit/check/${ORDER_ID}`, {
+      headers: { 'Authorization': `Bearer ${TOKEN}` }
+    });
+    const d = await r.json();
+
+    if (d.cc_status === 'paid' || d.confirmed) {
+      clearInterval(checkInterval);
+      timerActive = false;
+      showSuccess(d.amount || AMOUNT);
+    } else if (d.cc_status === 'cancel') {
+      clearInterval(checkInterval);
+      timerActive = false;
+      showToast('❌ To\'lov bekor qilindi');
+      setTimeout(() => location.href = '/game', 2500);
+    }
+  } catch(e) {
+    // Jimgina kutamiz
+  }
+}
+
+async function cancelOrder() {
+  try {
+    await fetch(`${API}/payments/deposit/cancel/${ORDER_ID}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${TOKEN}` }
+    });
+  } catch(e) {}
+  showToast('⏰ Vaqt tugadi, to\'lov bekor qilindi');
+  setTimeout(() => location.href = '/game', 3000);
+}
+
+function copyCard() {
+  const raw = CARD_RAW.replace(/\s/g, '');
+  if (!raw) return;
+  navigator.clipboard.writeText(raw).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ Nusxalandi!';
+    btn.classList.add('copied');
+    showToast('Karta raqami nusxalandi!');
+    setTimeout(() => {
+      btn.textContent = 'Karta raqamni nusxalash';
+      btn.classList.remove('copied');
+    }, 2500);
+  }).catch(() => {
+    // Fallback
+    const el = document.createElement('textarea');
+    el.value = raw;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('Karta raqami nusxalandi!');
+  });
+}
+
+function showSuccess(amount) {
+  document.getElementById('mainCard').style.display   = 'none';
+  document.getElementById('successCard').style.display = 'block';
+  document.getElementById('successMsg').textContent =
+    `${parseFloat(amount).toLocaleString()} so'm balansingizga muvaffaqiyatli qo'shildi.`;
+}
+
+function goBack() {
+  location.href = '/game';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
