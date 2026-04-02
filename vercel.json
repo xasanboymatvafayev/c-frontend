@@ -11,15 +11,73 @@
     }
   ],
   "routes": [
-    { "src": "/static/(.*)", "dest": "/public/static/$1" },
-    { "src": "/api/(.*)", "dest": "/api/index.py" },
-    { "src": "/game/aviator", "dest": "/api/index.py" },
-    { "src": "/game/apple", "dest": "/api/index.py" },
-    { "src": "/game/mines", "dest": "/api/index.py" },
-    { "src": "/game/history", "dest": "/api/index.py" },
-    { "src": "/game/profile", "dest": "/api/index.py" },
-    { "src": "/game", "dest": "/api/index.py" },
-    { "src": "/admin", "dest": "/api/index.py" },
-    { "src": "/", "dest": "/api/index.py" }
+    {
+      "src": "/static/(.*)",
+      "dest": "/public/static/$1"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/admin.html",
+      "dest": "/public/admin.html"
+    },
+    {
+      "src": "/apple.html",
+      "dest": "/public/apple.html"
+    },
+    {
+      "src": "/aviator.html",
+      "dest": "/public/aviator.html"
+    },
+    {
+      "src": "/history.html",
+      "dest": "/public/history.html"
+    },
+    {
+      "src": "/lobby.html",
+      "dest": "/public/lobby.html"
+    },
+    {
+      "src": "/mines.html",
+      "dest": "/public/mines.html"
+    },
+    {
+      "src": "/profile.html",
+      "dest": "/public/profile.html"
+    },
+    {
+      "src": "/game/aviator",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/game/apple",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/game/mines",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/game/history",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/game/profile",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/game",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/admin",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/",
+      "dest": "/public/index.html"
+    }
   ]
 }
