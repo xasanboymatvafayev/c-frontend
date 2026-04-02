@@ -213,7 +213,8 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #070a14; colo
 </div>
 
 <script>
-const API = '__BACKEND_URL__/api';
+const API = 'https://c-backend-production.up.railway.app/api';
+
 const TOKEN = localStorage.getItem('token');
 if (!TOKEN) window.location.href = '/';
 
