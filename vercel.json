@@ -22,7 +22,4 @@
     { "src": "/admin", "dest": "/api/index.py" },
     { "src": "/", "dest": "/api/index.py" }
   ],
-  "env": {
-    "BACKEND_URL": "@backend_url"
-  }
-}
+
