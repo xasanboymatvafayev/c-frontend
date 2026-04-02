@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casino Admin Panel</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d0d1a; color: #fff; min-height: 100vh; }
+
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: 220px;
+  background: #080812;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  display: flex; flex-direction: column;
+  z-index: 100;
+}
+
+.sidebar-logo {
+  padding: 24px 20px;
+  font-size: 18px; font-weight: 700;
+  background: linear-gradient(135deg, #FFD700, #FF8C00);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.nav-item {
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #888;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 10px;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover { color: #fff; background: rgba(255,255,255,0.03); }
+.nav-item.active { color: #FFD700; border-left-color: #FFD700; background: rgba(255,215,0,0.05); }
+
+.main {
+  margin-left: 220px;
+  padding: 24px;
+  min-height: 100vh;
+}
+
+.page { display: none; }
+.page.active { display: block; }
+
+h2 { font-size: 22px; font-weight: 700; margin-bottom: 20px; }
+
+/* CARDS */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 18px;
+}
+.stat-card-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.stat-card-value { font-size: 22px; font-weight: 700; }
+.val-gold { color: #FFD700; }
+.val-green { color: #4cd964; }
+.val-red { color: #ff7070; }
+.val-blue { color: #5bb8ff; }
+
+/* TABLE */
+.table-wrap {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.table-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.table-title { font-size: 15px; font-weight: 600; }
+
+table { width: 100%; border-collapse: collapse; }
+th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* BADGES */
+.badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-ok { background: rgba(76,217,100,0.15); color: #4cd964; }
+.badge-block { background: rgba(255,71,71,0.15); color: #ff7070; }
+.badge-pending { background: rgba(255,180,0,0.15); color: #FFD700; }
+
+/* ACTIONS */
+.action-btn {
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.2s;
+  margin-right: 4px;
+}
+.btn-confirm { background: rgba(76,217,100,0.15); color: #4cd964; border: 1px solid rgba(76,217,100,0.3); }
+.btn-block { background: rgba(255,71,71,0.15); color: #ff7070; border: 1px solid rgba(255,71,71,0.3); }
+.btn-warn { background: rgba(255,180,0,0.15); color: #FFD700; border: 1px solid rgba(255,180,0,0.3); }
+.btn-info { background: rgba(91,184,255,0.15); color: #5bb8ff; border: 1px solid rgba(91,184,255,0.3); }
+.action-btn:hover { opacity: 0.8; }
+
+/* FORMS */
+.form-section {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.form-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+input, select {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+}
+input:focus, select:focus { border-color: rgba(255,215,0,0.4); }
+select option { background: #1a1a2e; }
+
+.submit-btn {
+  margin-top: 16px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #FFD700, #FF8C00);
+  border: none;
+  border-radius: 10px;
+  color: #000;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.submit-btn:hover { opacity: 0.9; }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #1a1a2e;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 14px;
+  z-index: 1000;
+  transform: translateY(-80px);
+  transition: transform 0.3s;
+}
+.toast.show { transform: translateY(0); }
+.toast.success { border-color: rgba(76,217,100,0.4); color: #4cd964; }
+.toast.error { border-color: rgba(255,71,71,0.4); color: #ff7070; }
+
+/* LOGIN */
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 36px 32px;
+  width: 360px;
+}
+.login-card h2 { text-align: center; margin-bottom: 24px; font-size: 24px; }
+.login-input {
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: #fff;
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  margin-bottom: 12px;
+}
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #FFD700, #FF8C00);
+  border: none;
+  border-radius: 10px;
+  color: #000;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+  .sidebar { width: 60px; }
+  .sidebar-logo, .nav-item span:last-child { display: none; }
+  .nav-item { justify-content: center; padding: 14px; }
+  .main { margin-left: 60px; padding: 16px; }
+  .form-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <h2>🔐 Admin Panel</h2>
+    <input class="login-input" type="password" id="adminToken" placeholder="Admin token...">
+    <button class="login-btn" onclick="adminLogin()">Kirish</button>
+    <p id="loginErr" style="color:#ff7070;text-align:center;margin-top:12px;font-size:13px;"></p>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" style="display:none;">
+  <div class="sidebar">
+    <div class="sidebar-logo">🎰 Admin</div>
+    <nav>
+      <div class="nav-item active" onclick="showPage('stats')">📊 <span>Statistika</span></div>
+      <div class="nav-item" onclick="showPage('users')">👥 <span>Foydalanuvchilar</span></div>
+      <div class="nav-item" onclick="showPage('payments')">💳 <span>To'lovlar</span></div>
+      <div class="nav-item" onclick="showPage('control')">🛠 <span>Nazorat</span></div>
+      <div class="nav-item" onclick="showPage('promo')">🎟 <span>Promokodlar</span></div>
+    </nav>
+  </div>
+
+  <div class="main">
+    <!-- STATS PAGE -->
+    <div class="page active" id="page-stats">
+      <h2>📊 Statistika</h2>
+      
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-card-label">Foydalanuvchilar</div><div class="stat-card-value val-blue" id="s-users">—</div></div>
+        <div class="stat-card"><div class="stat-card-label">Jami balans</div><div class="stat-card-value val-gold" id="s-balance">—</div></div>
+        <div class="stat-card"><div class="stat-card-label">Jami yutuqlar</div><div class="stat-card-value val-green" id="s-won">—</div></div>
+        <div class="stat-card"><div class="stat-card-label">Jami yutqazishlar</div><div class="stat-card-value val-red" id="s-lost">—</div></div>
+        <div class="stat-card"><div class="stat-card-label">Foyda (uy)</div><div class="stat-card-value val-gold" id="s-profit">—</div></div>
+        <div class="stat-card"><div class="stat-card-label">Bugungi tikuvlar</div><div class="stat-card-value val-blue" id="s-bets">—</div></div>
+        <div class="stat-card"><div class="stat-card-label">Bugungi hajm</div><div class="stat-card-value val-gold" id="s-volume">—</div></div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header"><span class="table-title">🏆 Top Yutganlar</span></div>
+        <table><thead><tr><th>#</th><th>Login</th><th>Yutuq</th><th>Balans</th></tr></thead>
+        <tbody id="topWinners"></tbody></table>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header"><span class="table-title">📉 Top Yutqazganlar</span></div>
+        <table><thead><tr><th>#</th><th>Login</th><th>Yutqazish</th></tr></thead>
+        <tbody id="topLosers"></tbody></table>
+      </div>
+    </div>
+
+    <!-- USERS PAGE -->
+    <div class="page" id="page-users">
+      <h2>👥 Foydalanuvchilar</h2>
+      <div class="table-wrap">
+        <div class="table-header">
+          <span class="table-title">Ro'yxat</span>
+          <button class="action-btn btn-info" onclick="loadUsers()">🔄 Yangilash</button>
+        </div>
+        <table>
+          <thead><tr>
+            <th>ID</th><th>Login</th><th>Telegram</th>
+            <th>Balans</th><th>Yutuq</th><th>Holat</th><th>Yutqazdirish%</th><th>Amallar</th>
+          </tr></thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAYMENTS PAGE -->
+    <div class="page" id="page-payments">
+      <h2>💳 Kutayotgan To'lovlar</h2>
+      <div class="table-wrap">
+        <div class="table-header">
+          <span class="table-title">Tasdiqlash kutilmoqda</span>
+          <button class="action-btn btn-info" onclick="loadPending()">🔄 Yangilash</button>
+        </div>
+        <table>
+          <thead><tr>
+            <th>ID</th><th>Login</th><th>Summa</th><th>Order ID</th><th>Vaqt</th><th>Amal</th>
+          </tr></thead>
+          <tbody id="pendingTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CONTROL PAGE -->
+    <div class="page" id="page-control">
+      <h2>🛠 Foydalanuvchi Nazorati</h2>
+      
+      <div class="form-section">
+        <div class="form-title">🎯 Yutqazdirish foizi</div>
+        <p style="font-size:13px;color:#888;margin-bottom:14px;">
+          Foydalanuvchi ID sini kiriting va yutqazdirish foizini belgilang.<br>
+          Misol: 60% = foydalanuvchi 60% hollarda majburan yutqazadi. 0 = o'chirish.
+        </p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Foydalanuvchi ID</label>
+            <input type="number" id="ctrl-userId" placeholder="123">
+          </div>
+          <div class="form-group">
+            <label>Yutqazdirish foizi (%)</label>
+            <input type="number" id="ctrl-losePercent" placeholder="60" min="0" max="100">
+          </div>
+        </div>
+        <button class="submit-btn" onclick="setLosePercent()">Saqlash</button>
+      </div>
+
+      <div class="form-section">
+        <div class="form-title">🚫 Bloklash / Muzlatish</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Foydalanuvchi ID</label>
+            <input type="number" id="block-userId" placeholder="123">
+          </div>
+          <div class="form-group">
+            <label>Amal</label>
+            <select id="block-action">
+              <option value="block">🔴 Bloklash</option>
+              <option value="unblock">🟢 Blokni ochish</option>
+              <option value="freeze">❄️ Balansni muzlatish</option>
+              <option value="unfreeze">✅ Muzlatishni olib tashlash</option>
+              <option value="ban_games">⛔ O'yinlardan taqiqlash</option>
+              <option value="unban_games">✅ O'yinlardan taqiqni olib tashlash</option>
+            </select>
+          </div>
+        </div>
+        <button class="submit-btn" onclick="applyControl()">Bajarish</button>
+      </div>
+
+      <div class="form-section">
+        <div class="form-title">💰 Balansni qo'lda o'zgartirish</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Foydalanuvchi ID</label>
+            <input type="number" id="bal-userId" placeholder="123">
+          </div>
+          <div class="form-group">
+            <label>Summa (manfiy = ayirish)</label>
+            <input type="number" id="bal-amount" placeholder="5000">
+          </div>
+          <div class="form-group" style="grid-column:span 2">
+            <label>Izoh</label>
+            <input type="text" id="bal-note" placeholder="Qo'lda to'ldirish...">
+          </div>
+        </div>
+        <button class="submit-btn" onclick="adjustBalance()">Bajarish</button>
+      </div>
+    </div>
+
+    <!-- PROMO PAGE -->
+    <div class="page" id="page-promo">
+      <h2>🎟 Promokodlar</h2>
+      
+      <div class="form-section">
+        <div class="form-title">Yangi promokod yaratish</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Kod</label>
+            <input type="text" id="promo-code" placeholder="BONUS20">
+          </div>
+          <div class="form-group">
+            <label>Bonus foizi (%)</label>
+            <input type="number" id="promo-bonus" placeholder="20">
+          </div>
+          <div class="form-group">
+            <label>Max foydalanish (bo'sh = cheksiz)</label>
+            <input type="number" id="promo-maxuses" placeholder="100">
+          </div>
+          <div class="form-group">
+            <label>Tugash sanasi (ixtiyoriy)</label>
+            <input type="datetime-local" id="promo-expires">
+          </div>
+        </div>
+        <button class="submit-btn" onclick="createPromo()">Yaratish</button>
+      </div>
+      
+      <div class="table-wrap">
+        <div class="table-header"><span class="table-title">Promokodlar ro'yxati</span>
+          <button class="action-btn btn-info" onclick="loadPromos()">🔄 Yangilash</button>
+        </div>
+        <table>
+          <thead><tr><th>Kod</th><th>Bonus%</th><th>Foydalanilgan</th><th>Max</th><th>Holat</th><th>Tugash</th></tr></thead>
+          <tbody id="promosTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '__BACKEND_URL__/api';
+let ADMIN_TOKEN = '';
+
+function adminLogin() {
+  const token = document.getElementById('adminToken').value.trim();
+  if (!token) return;
+  ADMIN_TOKEN = token;
+  
+  // Test the token
+  fetch(`${API}/admin/stats`, {headers: {'X-Admin-Token': token}})
+    .then(r => {
+      if (r.ok) {
+        document.getElementById('loginWrap').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        localStorage.setItem('adminToken', token);
+        loadStats();
+      } else {
+        document.getElementById('loginErr').textContent = 'Token noto\'g\'ri!';
+      }
+    })
+    .catch(() => document.getElementById('loginErr').textContent = 'Server bilan bog\'lanib bo\'lmadi');
+}
+
+// Auto login
+const saved = localStorage.getItem('adminToken');
+if (saved) {
+  document.getElementById('adminToken').value = saved;
+  adminLogin();
+}
+
+document.getElementById('adminToken').addEventListener('keypress', e => {
+  if (e.key === 'Enter') adminLogin();
+});
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  event.target.closest('.nav-item').classList.add('active');
+  
+  if (name === 'stats') loadStats();
+  else if (name === 'users') loadUsers();
+  else if (name === 'payments') loadPending();
+  else if (name === 'promo') loadPromos();
+}
+
+async function apiFetch(endpoint, options={}) {
+  const resp = await fetch(`${API}${endpoint}`, {
+    ...options,
+    headers: {'X-Admin-Token': ADMIN_TOKEN, 'Content-Type': 'application/json', ...(options.headers || {})}
+  });
+  return resp.json();
+}
+
+async function loadStats() {
+  try {
+    const stats = await apiFetch('/admin/stats');
+    document.getElementById('s-users').textContent = stats.total_users?.toLocaleString() || '0';
+    document.getElementById('s-balance').textContent = formatMoney(stats.total_balance);
+    document.getElementById('s-won').textContent = formatMoney(stats.total_won);
+    document.getElementById('s-lost').textContent = formatMoney(stats.total_lost);
+    document.getElementById('s-profit').textContent = formatMoney(stats.house_profit);
+    document.getElementById('s-bets').textContent = stats.today_bets?.toLocaleString() || '0';
+    document.getElementById('s-volume').textContent = formatMoney(stats.today_volume);
+
+    const winners = await apiFetch('/admin/top_winners?limit=5');
+    document.getElementById('topWinners').innerHTML = winners.map((u, i) =>
+      `<tr><td>${i+1}</td><td>${u.login}</td><td class="val-green">${formatMoney(u.total_won)}</td><td>${formatMoney(u.balance)}</td></tr>`
+    ).join('');
+
+    const losers = await apiFetch('/admin/top_losers?limit=5');
+    document.getElementById('topLosers').innerHTML = losers.map((u, i) =>
+      `<tr><td>${i+1}</td><td>${u.login}</td><td class="val-red">${formatMoney(u.total_lost)}</td></tr>`
+    ).join('');
+  } catch(e) { showToast('Statistika yuklanmadi', 'error'); }
+}
+
+async function loadUsers() {
+  try {
+    const users = await apiFetch('/admin/users?limit=100');
+    document.getElementById('usersTable').innerHTML = users.map(u => `
+      <tr>
+        <td>${u.id}</td>
+        <td><code style="font-size:11px">${u.login}</code></td>
+        <td style="font-size:11px">${u.telegram_id}</td>
+        <td>${formatMoney(u.balance)}</td>
+        <td class="val-green">${formatMoney(u.total_won)}</td>
+        <td>
+          ${u.is_blocked ? '<span class="badge badge-block">Bloklangan</span>' : '<span class="badge badge-ok">Faol</span>'}
+          ${u.balance_frozen ? '<span class="badge badge-pending" style="margin-left:4px">Muzlatilgan</span>' : ''}
+          ${u.games_banned ? '<span class="badge badge-block" style="margin-left:4px">O\'yin taqiq</span>' : ''}
+        </td>
+        <td>${u.lose_percent ? `<span style="color:#FFD700;font-weight:600">${u.lose_percent}%</span>` : '<span style="color:#666">—</span>'}</td>
+        <td>
+          <button class="action-btn ${u.is_blocked ? 'btn-confirm' : 'btn-block'}" 
+            onclick="quickControl(${u.id}, '${u.is_blocked ? 'unblock' : 'block'}')">
+            ${u.is_blocked ? '✅ Ochish' : '🔴 Blok'}
+          </button>
+          <button class="action-btn btn-warn" onclick="quickSetLose(${u.id}, ${u.lose_percent || 0})">🎯 Foiz</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch(e) { showToast('Foydalanuvchilar yuklanmadi', 'error'); }
+}
+
+async function loadPending() {
+  try {
+    const items = await apiFetch('/admin/pending_deposits');
+    if (!items.length) {
+      document.getElementById('pendingTable').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:24px">Kutayotgan to\'lov yo\'q</td></tr>';
+      return;
+    }
+    document.getElementById('pendingTable').innerHTML = items.map(tx => `
+      <tr>
+        <td>${tx.tx_id}</td>
+        <td>${tx.login}</td>
+        <td style="color:#FFD700;font-weight:600">${formatMoney(tx.amount)}</td>
+        <td><code style="font-size:11px">${tx.order_id || '—'}</code></td>
+        <td style="font-size:12px;color:#888">${new Date(tx.created_at).toLocaleString('uz-UZ')}</td>
+        <td>
+          <button class="action-btn btn-confirm" onclick="confirmDeposit(${tx.tx_id})">✅ Tasdiqlash</button>
+          <button class="action-btn btn-block" onclick="rejectDeposit(${tx.tx_id})">❌ Rad</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch(e) { showToast('To\'lovlar yuklanmadi', 'error'); }
+}
+
+async function confirmDeposit(txId) {
+  if (!confirm('Tasdiqlaysizmi?')) return;
+  try {
+    const data = await apiFetch('/admin/confirm_deposit', {
+      method: 'POST', body: JSON.stringify({tx_id: txId})
+    });
+    showToast(`✅ Tasdiqlandi! Yangi balans: ${formatMoney(data.user_balance)}`, 'success');
+    loadPending();
+  } catch(e) { showToast('Xatolik!', 'error'); }
+}
+
+async function rejectDeposit(txId) {
+  if (!confirm('Rad etasizmi?')) return;
+  showToast('Rad etildi', 'success');
+  loadPending();
+}
+
+async function setLosePercent() {
+  const userId = parseInt(document.getElementById('ctrl-userId').value);
+  const percent = parseFloat(document.getElementById('ctrl-losePercent').value);
+  if (!userId) { showToast('User ID kiriting!', 'error'); return; }
+  
+  const action = percent > 0 ? 'set_lose_percent' : 'remove_lose_percent';
+  try {
+    await apiFetch('/admin/user/control', {
+      method: 'POST',
+      body: JSON.stringify({user_id: userId, action, lose_percent: percent || null})
+    });
+    showToast(`✅ User ${userId}: ${percent}% yutqazdirish foizi o'rnatildi`, 'success');
+  } catch(e) { showToast('Xatolik!', 'error'); }
+}
+
+async function applyControl() {
+  const userId = parseInt(document.getElementById('block-userId').value);
+  const action = document.getElementById('block-action').value;
+  if (!userId) { showToast('User ID kiriting!', 'error'); return; }
+  
+  try {
+    await apiFetch('/admin/user/control', {
+      method: 'POST',
+      body: JSON.stringify({user_id: userId, action})
+    });
+    showToast(`✅ Amal bajarildi`, 'success');
+    loadUsers();
+  } catch(e) { showToast('Xatolik!', 'error'); }
+}
+
+async function adjustBalance() {
+  const userId = parseInt(document.getElementById('bal-userId').value);
+  const amount = parseFloat(document.getElementById('bal-amount').value);
+  const note = document.getElementById('bal-note').value;
+  if (!userId || !amount) { showToast('Barcha maydonlarni to\'ldiring!', 'error'); return; }
+  
+  try {
+    const data = await apiFetch('/admin/user/add_balance', {
+      method: 'POST',
+      body: JSON.stringify({user_id: userId, amount, note})
+    });
+    showToast(`✅ Yangi balans: ${formatMoney(data.new_balance)}`, 'success');
+  } catch(e) { showToast('Xatolik!', 'error'); }
+}
+
+async function quickControl(userId, action) {
+  try {
+    await apiFetch('/admin/user/control', {
+      method: 'POST',
+      body: JSON.stringify({user_id: userId, action})
+    });
+    showToast('✅ Bajarildi', 'success');
+    loadUsers();
+  } catch(e) { showToast('Xatolik!', 'error'); }
+}
+
+function quickSetLose(userId, current) {
+  const val = prompt(`User ${userId} uchun yutqazdirish foizi (hozir: ${current}%)\n0 = o'chirish:`, current);
+  if (val === null) return;
+  document.getElementById('ctrl-userId').value = userId;
+  document.getElementById('ctrl-losePercent').value = parseFloat(val) || 0;
+  showPage('control');
+}
+
+async function createPromo() {
+  const code = document.getElementById('promo-code').value.trim().toUpperCase();
+  const bonus = parseFloat(document.getElementById('promo-bonus').value);
+  const maxUses = document.getElementById('promo-maxuses').value || null;
+  const expires = document.getElementById('promo-expires').value || null;
+  
+  if (!code || !bonus) { showToast('Kod va bonus foizini kiriting!', 'error'); return; }
+  
+  try {
+    const data = await apiFetch('/admin/promo/create', {
+      method: 'POST',
+      body: JSON.stringify({
+        code, bonus_percent: bonus,
+        max_uses: maxUses ? parseInt(maxUses) : null,
+        expires_at: expires ? new Date(expires).toISOString() : null
+      })
+    });
+    showToast(`✅ Promokod yaratildi: ${data.code}`, 'success');
+    loadPromos();
+  } catch(e) { showToast('Xatolik!', 'error'); }
+}
+
+async function loadPromos() {
+  try {
+    const promos = await apiFetch('/admin/promos');
+    document.getElementById('promosTable').innerHTML = promos.map(p => `
+      <tr>
+        <td><code style="font-weight:700;color:#FFD700">${p.code}</code></td>
+        <td>+${p.bonus_percent}%</td>
+        <td>${p.used_count}</td>
+        <td>${p.max_uses || '∞'}</td>
+        <td>${p.is_active ? '<span class="badge badge-ok">Faol</span>' : '<span class="badge badge-block">Nofaol</span>'}</td>
+        <td style="font-size:12px;color:#888">${p.expires_at ? new Date(p.expires_at).toLocaleDateString() : '—'}</td>
+      </tr>
+    `).join('');
+  } catch(e) { showToast('Promokodlar yuklanmadi', 'error'); }
+}
+
+function formatMoney(n) {
+  return Math.floor(n || 0).toLocaleString('uz-UZ') + ' so\'m';
+}
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// Auto-refresh stats every 30s
+setInterval(() => {
+  if (document.getElementById('page-stats').classList.contains('active')) loadStats();
+}, 30000);
+</script>
+</body>
+</html>
