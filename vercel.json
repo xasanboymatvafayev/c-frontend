@@ -1,20 +1,19 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
-    }
+    { "src": "public/**", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/", "dest": "/public/index.html" },
-    { "src": "/game", "dest": "/public/lobby.html" },
-    { "src": "/game/aviator", "dest": "/public/aviator.html" },
-    { "src": "/game/apple", "dest": "/public/apple.html" },
-    { "src": "/game/mines", "dest": "/public/mines.html" },
-    { "src": "/game/history", "dest": "/public/history.html" },
-    { "src": "/game/profile", "dest": "/public/profile.html" },
-    { "src": "/admin", "dest": "/public/admin.html" },
-    { "src": "/(.*)", "dest": "/public/$1" }
+    { "src": "/",                  "dest": "/public/index.html" },
+    { "src": "/game",              "dest": "/public/lobby.html" },
+    { "src": "/game/aviator",      "dest": "/public/aviator.html" },
+    { "src": "/game/apple",        "dest": "/public/apple.html" },
+    { "src": "/game/mines",        "dest": "/public/mines.html" },
+    { "src": "/game/history",      "dest": "/public/history.html" },
+    { "src": "/game/profile",      "dest": "/public/profile.html" },
+    { "src": "/game/payment",      "dest": "/public/payment.html" },
+    { "src": "/admin",             "dest": "/public/admin.html" },
+    { "src": "/(.*\\.html)",       "dest": "/public/$1" },
+    { "src": "/(.*)",              "dest": "/public/$1" }
   ]
 }
